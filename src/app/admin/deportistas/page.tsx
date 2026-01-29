@@ -17,7 +17,6 @@ interface Deportista {
   email: string
   celular?: string
   posicion?: string
-  planSesiones?: number
   activo: boolean
 }
 
@@ -153,14 +152,6 @@ export default function DeportistasPage() {
                           <>
                             <span>•</span>
                             <span>{deportista.posicion}</span>
-                          </>
-                        )}
-                        {deportista.planSesiones && (
-                          <>
-                            <span>•</span>
-                            <span className="font-medium text-orange-600">
-                              {deportista.planSesiones} sesiones
-                            </span>
                           </>
                         )}
                       </div>

@@ -12,6 +12,7 @@ interface Turno {
   nombre: string
   hora: string
   tipo: string
+  activo: boolean
 }
 
 interface Entrenador {

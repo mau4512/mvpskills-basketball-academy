@@ -15,6 +15,7 @@ interface Turno {
   hora: string
   tipo: string
   seccion: string
+  activo: boolean
 }
 
 export default function NuevoEntrenadorPage() {
