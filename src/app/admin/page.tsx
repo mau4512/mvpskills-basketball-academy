@@ -3,6 +3,10 @@ import Link from 'next/link'
 import { Users, Activity, TrendingUp, Calendar } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 
+// Forzar rendering dinámico
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 async function getEstadisticas() {
   // Obtener el total de deportistas y deportistas activos
   const totalDeportistas = await prisma.deportista.count()
