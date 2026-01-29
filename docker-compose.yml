@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mvpskills_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: mvpskills
+      POSTGRES_PASSWORD: mvpskills_password
+      POSTGRES_DB: basketball_tracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mvpskills_network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: mvpskills_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@mvpskills.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - mvpskills_network
+
+volumes:
+  postgres_data:
+
+networks:
+  mvpskills_network:
+    driver: bridge

@@ -1,0 +1,354 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import { Card, CardContent, CardHeader } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { ArrowLeft, Save, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { POSICIONES } from '@/lib/constants'
+
+interface DeportistaData {
+  nombre: string
+  apellidos: string
+  documentoIdentidad: string
+  email: string
+  celular: string
+  fechaNacimiento: string
+  altura: string
+  peso: string
+  posicion: string
+  planSesiones: string
+  turnoId: string
+  activo: boolean
+}
+
+interface Turno {
+  id: string
+  nombre: string
+  tipo: string
+  hora: string
+}
+
+export default function EditarDeportistaPage() {
+  const router = useRouter()
+  const params = useParams()
+  const id = params.id as string
+
+  const [loading, setLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [turnos, setTurnos] = useState<Turno[]>([])
+  const [formData, setFormData] = useState<DeportistaData>({
+    nombre: '',
+    apellidos: '',
+    documentoIdentidad: '',
+    email: '',
+    celular: '',
+    fechaNacimiento: '',
+    altura: '',
+    peso: '',
+    posicion: '',
+    planSesiones: '12',
+    turnoId: '',
+    activo: true
+  })
+
+  useEffect(() => {
+    fetchDeportista()
+    fetchTurnos()
+  }, [id])
+
+  const fetchTurnos = async () => {
+    try {
+      const response = await fetch('/api/turnos')
+      if (response.ok) {
+        const data = await response.json()
+        // Filtrar solo turnos activos
+        setTurnos(Array.isArray(data) ? data.filter((t: any) => t.activo) : [])
+      }
+    } catch (error) {
+      console.error('Error al cargar turnos:', error)
+      setTurnos([])
+    }
+  }
+
+  const fetchDeportista = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/deportistas/${id}`)
+      
+      if (!response.ok) {
+        throw new Error('Deportista no encontrado')
+      }
+      
+      const data = await response.json()
+      
+      // Formatear fecha para input date
+      const fechaNacimiento = new Date(data.fechaNacimiento).toISOString().split('T')[0]
+      
+      setFormData({
+        nombre: data.nombre,
+        apellidos: data.apellidos,
+        documentoIdentidad: data.documentoIdentidad,
+        email: data.email,
+        celular: data.celular || '',
+        fechaNacimiento,
+        altura: data.altura?.toString() || '',
+        peso: data.peso?.toString() || '',
+        posicion: data.posicion || '',
+        planSesiones: data.planSesiones?.toString() || '12',
+        turnoId: data.turnoId || '',
+        activo: data.activo
+      })
+    } catch (err: any) {
+      console.error('Error:', err)
+      setError(err.message || 'Error al cargar deportista')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch(`/api/deportistas/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Error al actualizar deportista')
+      }
+      
+      alert('Deportista actualizado exitosamente')
+      router.push('/admin/deportistas')
+    } catch (error: any) {
+      console.error('Error:', error)
+      alert(error.message || 'Error al actualizar deportista')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target
+    
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked
+      setFormData({
+        ...formData,
+        [name]: checked
+      })
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      })
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Link href="/admin/deportistas">
+            <Button>Volver a Deportistas</Button>
+          </Link>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div>
+      <div className="mb-6">
+        <Link href="/admin/deportistas">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver a Deportistas
+          </Button>
+        </Link>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <h1 className="text-2xl font-bold text-gray-900">Editar Deportista</h1>
+          <p className="text-gray-600 mt-1">Actualiza la información del deportista</p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Información Personal */}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Información Personal</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="Nombre *"
+                  name="nombre"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  required
+                  placeholder="Ej: Juan"
+                />
+                <Input
+                  label="Apellidos *"
+                  name="apellidos"
+                  value={formData.apellidos}
+                  onChange={handleChange}
+                  required
+                  placeholder="Ej: García López"
+                />
+                <Input
+                  label="Documento de Identidad *"
+                  name="documentoIdentidad"
+                  value={formData.documentoIdentidad}
+                  onChange={handleChange}
+                  required
+                  placeholder="Ej: 12345678X"
+                />
+                <Input
+                  label="Fecha de Nacimiento *"
+                  name="fechaNacimiento"
+                  type="date"
+                  value={formData.fechaNacimiento}
+                  onChange={handleChange}
+                  required
+                />
+                <Input
+                  label="Email *"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  placeholder="deportista@example.com"
+                />
+                <Input
+                  label="Celular"
+                  name="celular"
+                  type="tel"
+                  value={formData.celular}
+                  onChange={handleChange}
+                  placeholder="Ej: +34 600 123 456"
+                />
+              </div>
+            </div>
+
+            {/* Información Deportiva */}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Información Deportiva</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Input
+                  label="Altura (cm)"
+                  name="altura"
+                  type="number"
+                  value={formData.altura}
+                  onChange={handleChange}
+                  placeholder="Ej: 188"
+                />
+                <Input
+                  label="Peso (kg)"
+                  name="peso"
+                  type="number"
+                  value={formData.peso}
+                  onChange={handleChange}
+                  placeholder="Ej: 82"
+                />
+                <Select
+                  label="Posición"
+                  name="posicion"
+                  value={formData.posicion}
+                  onChange={handleChange}
+                  options={[
+                    { value: '', label: 'Seleccionar posición' },
+                    ...POSICIONES.map(pos => ({ value: pos, label: pos }))
+                  ]}
+                />
+              </div>
+            </div>
+
+            {/* Plan de Entrenamiento */}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Plan de Entrenamiento</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Select
+                  label="Número de Sesiones *"
+                  name="planSesiones"
+                  value={formData.planSesiones}
+                  onChange={handleChange}
+                  required
+                  options={[
+                    { value: '12', label: '12 Sesiones' },
+                    { value: '20', label: '20 Sesiones' }
+                  ]}
+                />
+                <Select
+                  label="Turno Asignado"
+                  name="turnoId"
+                  value={formData.turnoId}
+                  onChange={handleChange}
+                >
+                  <option value="">Sin turno asignado</option>
+                  {turnos.map((turno) => (
+                    <option key={turno.id} value={turno.id}>
+                      {turno.nombre} - {turno.tipo === 'diurno' ? 'Diurno' : 'Nocturno'} ({turno.hora})
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <p className="text-sm text-gray-600 mt-2">
+                Selecciona el plan de entrenamiento y turno para este deportista
+              </p>
+            </div>
+
+            {/* Estado */}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Estado</h2>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="activo"
+                  name="activo"
+                  checked={formData.activo}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+                />
+                <label htmlFor="activo" className="ml-2 block text-sm text-gray-900">
+                  Deportista activo
+                </label>
+              </div>
+            </div>
+
+            {/* Botones */}
+            <div className="flex justify-end space-x-4 pt-6 border-t">
+              <Link href="/admin/deportistas">
+                <Button type="button" variant="secondary">
+                  Cancelar
+                </Button>
+              </Link>
+              <Button type="submit" disabled={isSubmitting}>
+                <Save className="h-4 w-4 mr-2" />
+                {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

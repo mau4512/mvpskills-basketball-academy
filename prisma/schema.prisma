@@ -1,0 +1,221 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo del administrador
+model Admin {
+  id            String        @id @default(cuid())
+  nombre        String
+  email         String        @unique
+  password      String
+  rol           String        @default("admin") // admin, entrenador
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  @@map("admins")
+}
+
+// Modelo del deportista/atleta
+model Deportista {
+  id            String        @id @default(cuid())
+  nombre        String
+  apellidos     String
+  documentoIdentidad String   @unique
+  email         String        @unique
+  celular       String?
+  password      String?
+  fechaNacimiento DateTime
+  altura        Float?        // en cm
+  peso          Float?        // en kg
+  posicion      String?       // Base, Escolta, Alero, etc.
+  photoUrl      String?
+  planSesiones  Int           @default(12) // 12 o 20 sesiones
+  activo        Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relaciones
+  sesiones      Sesion[]
+  mediciones    Medicion[]
+  ejercicios    Ejercicio[]
+  asistencias   Asistencia[]
+  turnoId       String?
+  turno         Turno?        @relation(fields: [turnoId], references: [id], onDelete: SetNull)
+  
+  @@map("deportistas")
+}
+
+// Modelo de Turno
+model Turno {
+  id            String        @id @default(cuid())
+  nombre        String        // Nombre descriptivo del turno
+  tipo          String        // diurno, nocturno
+  hora          String        // Formato HH:MM
+  modalidad     String        // interdiario (12 sesiones), diario (20 sesiones)
+  seccion       String        // preparacion_fisica, tecnica_individual, personalizado
+  capacidadMaxima Int         @default(10) // 10 por defecto, 5 para personalizado
+  activo        Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relaciones
+  deportistas   Deportista[]
+  asistencias   Asistencia[]
+  
+  @@map("turnos")
+}
+
+// Modelo de Entrenador
+model Entrenador {
+  id            String        @id @default(cuid())
+  nombre        String
+  apellidos     String
+  documentoIdentidad String   @unique
+  email         String        @unique
+  celular       String?
+  especialidad  String[]      // Array de especialidades
+  turnoIds      String[]      // Array de IDs de turnos
+  activo        Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  @@map("entrenadores")
+}
+
+// Ejercicios y esquemas
+model Ejercicio {
+  id            String        @id @default(cuid())
+  titulo        String
+  descripcion   String?       @db.Text
+  categoria     String        // Tiro, Defensa, Físico, Técnico
+  dificultad    String?       // Principiante, Intermedio, Avanzado
+  archivoUrl    String?       // URL del PDF o imagen
+  videoUrl      String?
+  deportistaId  String
+  deportista    Deportista    @relation(fields: [deportistaId], references: [id], onDelete: Cascade)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relaciones
+  sesiones      SesionEjercicio[]
+  
+  @@map("ejercicios")
+}
+
+// Sesiones de entrenamiento
+model Sesion {
+  id            String        @id @default(cuid())
+  fecha         DateTime      @default(now())
+  duracion      Int?          // en minutos
+  tipo          String        // Entrenamiento, Partido, Preparación Física
+  notas         String?       @db.Text
+  deportistaId  String
+  deportista    Deportista    @relation(fields: [deportistaId], references: [id], onDelete: Cascade)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relaciones
+  ejercicios    SesionEjercicio[]
+  medicionesTiro MedicionTiro[]
+  
+  @@map("sesiones")
+}
+
+// Tabla intermedia para ejercicios en sesiones
+model SesionEjercicio {
+  id            String        @id @default(cuid())
+  sesionId      String
+  ejercicioId   String
+  series        Int?
+  repeticiones  Int?
+  carga         Float?        // en kg
+  descanso      Int?          // en segundos
+  notas         String?
+  
+  sesion        Sesion        @relation(fields: [sesionId], references: [id], onDelete: Cascade)
+  ejercicio     Ejercicio     @relation(fields: [ejercicioId], references: [id], onDelete: Cascade)
+  createdAt     DateTime      @default(now())
+  
+  @@map("sesiones_ejercicios")
+}
+
+// Mediciones de tiro
+model MedicionTiro {
+  id            String        @id @default(cuid())
+  sesionId      String
+  sesion        Sesion        @relation(fields: [sesionId], references: [id], onDelete: Cascade)
+  tipoTiro      String        // Tiro libre, Triple, Media distancia, etc.
+  intentos      Int
+  aciertos      Int
+  porcentaje    Float         // calculado automáticamente
+  zona          String?       // Zona de la cancha
+  notas         String?
+  createdAt     DateTime      @default(now())
+  
+  @@map("mediciones_tiro")
+}
+
+// Mediciones físicas y antropométricas
+model Medicion {
+  id            String        @id @default(cuid())
+  deportistaId  String
+  deportista    Deportista    @relation(fields: [deportistaId], references: [id], onDelete: Cascade)
+  fecha         DateTime      @default(now())
+  peso          Float?        // en kg
+  altura        Float?        // en cm
+  imc           Float?
+  grasa         Float?        // porcentaje
+  musculo       Float?        // porcentaje
+  vo2max        Float?
+  saltoVertical Float?        // en cm
+  velocidad     Float?        // en m/s
+  fuerza        Float?        // en kg (press banca, sentadilla, etc.)
+  tipoMedicion  String        // Antropometría, Test Físico, etc.
+  notas         String?       @db.Text
+  createdAt     DateTime      @default(now())
+  
+  @@map("mediciones")
+}
+
+// Asistencias de deportistas a turnos
+model Asistencia {
+  id            String        @id @default(cuid())
+  deportistaId  String
+  deportista    Deportista    @relation(fields: [deportistaId], references: [id], onDelete: Cascade)
+  turnoId       String
+  turno         Turno         @relation(fields: [turnoId], references: [id], onDelete: Cascade)
+  fecha         DateTime      @default(now())
+  presente      Boolean       @default(false)
+  notas         String?       @db.Text
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  @@unique([deportistaId, turnoId, fecha])
+  @@map("asistencias")
+}
+
+// Matrículas desde la web pública
+model Matricula {
+  id               Int      @id @default(autoincrement())
+  nombre           String
+  apellidos        String
+  email            String
+  telefono         String
+  fechaNacimiento  DateTime
+  programa         String
+  nivel            String   @default("principiante")
+  mensaje          String?  @db.Text
+  estado           String   @default("pendiente")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  @@map("matriculas")
+}
