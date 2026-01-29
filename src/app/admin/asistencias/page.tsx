@@ -12,6 +12,7 @@ interface Turno {
   tipo: string
   hora: string
   seccion: string
+  activo: boolean
   _count: {
     deportistas: number
   }
