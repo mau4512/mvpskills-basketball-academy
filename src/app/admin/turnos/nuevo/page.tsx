@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -12,14 +12,32 @@ import Link from 'next/link'
 export default function NuevoTurnoPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [entrenadores, setEntrenadores] = useState<any[]>([])
   const [formData, setFormData] = useState({
     nombre: '',
     tipo: 'diurno',
     hora: '',
     modalidad: 'interdiario',
     seccion: 'preparacion_fisica',
+    entrenadorId: '',
     activo: true
   })
+
+  useEffect(() => {
+    fetchEntrenadores()
+  }, [])
+
+  const fetchEntrenadores = async () => {
+    try {
+      const response = await fetch('/api/entrenadores')
+      if (response.ok) {
+        const data = await response.json()
+        setEntrenadores(data.filter((e: any) => e.activo))
+      }
+    } catch (error) {
+      console.error('Error al cargar entrenadores:', error)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -157,6 +175,28 @@ export default function NuevoTurnoPage() {
                 {formData.seccion === 'personalizado' 
                   ? 'Capacidad máxima: 5 deportistas' 
                   : 'Capacidad máxima: 10 deportistas'}
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="entrenadorId" className="block text-sm font-medium text-gray-700 mb-2">
+                Entrenador Asignado
+              </label>
+              <Select
+                id="entrenadorId"
+                name="entrenadorId"
+                value={formData.entrenadorId}
+                onChange={handleChange}
+              >
+                <option value="">Sin asignar</option>
+                {entrenadores.map(entrenador => (
+                  <option key={entrenador.id} value={entrenador.id}>
+                    {entrenador.nombre} {entrenador.apellidos} - {entrenador.especialidad.join(', ')}
+                  </option>
+                ))}
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                Opcional: Asigna un entrenador a este turno
               </p>
             </div>
 

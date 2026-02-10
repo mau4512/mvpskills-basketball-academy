@@ -1,12 +1,22 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
-import { Users, Home, Clock, Calendar, UserCog } from 'lucide-react'
+import { Users, Home, Clock, Calendar, UserCog, LogOut } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const router = useRouter()
+
+  const cerrarSesion = () => {
+    localStorage.removeItem('isAdmin')
+    router.push('/')
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-md border-b-4 border-orange-600">
@@ -58,12 +68,13 @@ export default function AdminLayout({
             </div>
             
             <div className="flex items-center">
-              <Link
-                href="/dashboard"
-                className="text-sm text-gray-600 hover:text-orange-600"
+              <button
+                onClick={cerrarSesion}
+                className="flex items-center px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition"
               >
-                Ver como deportista →
-              </Link>
+                <LogOut className="h-4 w-4 mr-2" />
+                Cerrar Sesión
+              </button>
             </div>
           </div>
         </div>

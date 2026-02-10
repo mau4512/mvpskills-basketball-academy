@@ -10,6 +10,16 @@ export async function GET(
     const deportista = await prisma.deportista.findUnique({
       where: {
         id: params.id
+      },
+      include: {
+        turno: {
+          select: {
+            id: true,
+            nombre: true,
+            hora: true,
+            tipo: true
+          }
+        }
       }
     })
 
@@ -44,6 +54,11 @@ export async function PUT(
     // Solo actualizar turnoId si está presente en el body
     if ('turnoId' in body) {
       updateData.turnoId = body.turnoId
+    }
+    
+    // Actualizar contraseña solo si se proporciona
+    if (body.password) {
+      updateData.password = body.password
     }
     
     // Actualizar otros campos si están presentes

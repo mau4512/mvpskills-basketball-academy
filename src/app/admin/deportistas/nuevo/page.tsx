@@ -29,6 +29,8 @@ export default function NuevoDeportistaPage() {
     apellidos: '',
     documentoIdentidad: '',
     email: '',
+    password: '',
+    confirmPassword: '',
     celular: '',
     fechaNacimiento: '',
     altura: '',
@@ -60,13 +62,29 @@ export default function NuevoDeportistaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validar que las contraseñas coincidan
+    if (formData.password !== formData.confirmPassword) {
+      alert('Las contraseñas no coinciden')
+      return
+    }
+    
+    // Validar longitud mínima de contraseña
+    if (formData.password.length < 6) {
+      alert('La contraseña debe tener al menos 6 caracteres')
+      return
+    }
+    
     setIsSubmitting(true)
 
     try {
+      // Remover confirmPassword antes de enviar
+      const { confirmPassword, ...dataToSend } = formData
+      
       const response = await fetch('/api/deportistas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(dataToSend)
       })
       
       if (!response.ok) {
@@ -106,6 +124,11 @@ export default function NuevoDeportistaPage() {
         <CardHeader>
           <h1 className="text-2xl font-bold text-gray-900">Registrar Nuevo Deportista</h1>
           <p className="text-gray-600 mt-1">Completa la información del deportista</p>
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>📧 Credenciales de Acceso:</strong> El email y contraseña que establezcas aquí serán las credenciales que el deportista usará para iniciar sesión en su portal.
+            </p>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -153,6 +176,26 @@ export default function NuevoDeportistaPage() {
                   onChange={handleChange}
                   required
                   placeholder="deportista@example.com"
+                />
+                <Input
+                  label="Contraseña *"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  placeholder="Mínimo 6 caracteres"
+                  minLength={6}
+                />
+                <Input
+                  label="Confirmar Contraseña *"
+                  name="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  placeholder="Repite la contraseña"
+                  minLength={6}
                 />
                 <Input
                   label="Celular"

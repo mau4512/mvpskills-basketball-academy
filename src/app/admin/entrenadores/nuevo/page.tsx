@@ -27,6 +27,7 @@ export default function NuevoEntrenadorPage() {
     apellidos: '',
     documentoIdentidad: '',
     email: '',
+    password: '',
     celular: '',
   })
 
@@ -214,6 +215,20 @@ export default function NuevoEntrenadorPage() {
                     value={formData.celular}
                     onChange={handleChange}
                     placeholder="+34 600 000 000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Contraseña *
+                  </label>
+                  <Input
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    placeholder="Contraseña de acceso"
                   />
                 </div>
 

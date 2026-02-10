@@ -31,12 +31,14 @@ export async function POST(request: Request) {
         apellidos: body.apellidos,
         documentoIdentidad: body.documentoIdentidad,
         email: body.email,
+        password: body.password || null,
         celular: body.celular || null,
         fechaNacimiento: new Date(body.fechaNacimiento),
         altura: body.altura ? parseFloat(body.altura) : null,
         peso: body.peso ? parseFloat(body.peso) : null,
         posicion: body.posicion || null,
         planSesiones: body.planSesiones ? parseInt(body.planSesiones) : 12,
+        turnoId: body.turnoId || null,
         activo: body.activo !== false
       }
     })

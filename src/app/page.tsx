@@ -1,16 +1,13 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Trophy, Users, Target, Calendar, CheckCircle, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import MatriculaForm from '@/components/MatriculaForm'
-import LoginModal from '@/components/LoginModal'
 
 export default function HomePage() {
-  const [isLoginOpen, setIsLoginOpen] = useState(false)
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar */}
@@ -31,7 +28,9 @@ export default function HomePage() {
               <Link href="#matricula">
                 <Button variant="outline">Matricúlate</Button>
               </Link>
-              <Button onClick={() => setIsLoginOpen(true)}>Iniciar Sesión</Button>
+              <Link href="/deportista/login">
+                <Button>Acceso Deportistas</Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -305,9 +304,14 @@ export default function HomePage() {
                   </Link>
                 </li>
                 <li>
-                  <button onClick={() => setIsLoginOpen(true)} className="text-gray-400 hover:text-orange-400">
-                    Iniciar Sesión
-                  </button>
+                  <Link href="/deportista/login" className="text-gray-400 hover:text-orange-400">
+                    Acceso Deportistas
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/entrenador/login" className="text-gray-400 hover:text-orange-400">
+                    Acceso Entrenadores
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -318,9 +322,6 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-
-      {/* Modal de Login */}
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </div>
   )
 }

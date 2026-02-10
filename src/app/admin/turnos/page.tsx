@@ -155,6 +155,15 @@ export default function TurnosPage() {
                       <span className="ml-2 text-gray-600">{getSeccionLabel(turno.seccion)}</span>
                     </div>
                     
+                    {turno.entrenador && (
+                      <div className="text-sm">
+                        <span className="font-medium text-gray-700">Entrenador:</span>
+                        <span className="ml-2 text-gray-600">
+                          {turno.entrenador.nombre} {turno.entrenador.apellidos}
+                        </span>
+                      </div>
+                    )}
+                    
                     <div className="flex items-center text-sm pt-3 border-t">
                       <Users className="h-4 w-4 mr-2 text-gray-500" />
                       <span className="font-medium text-gray-900">{turno._count.deportistas}</span>

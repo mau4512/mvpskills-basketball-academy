@@ -43,6 +43,7 @@ export default function EditarEntrenadorPage() {
     apellidos: '',
     documentoIdentidad: '',
     email: '',
+    password: '',
     celular: '',
     activo: true,
   })
@@ -75,11 +76,15 @@ export default function EditarEntrenadorPage() {
           apellidos: data.apellidos,
           documentoIdentidad: data.documentoIdentidad,
           email: data.email,
+          password: '',
           celular: data.celular || '',
           activo: data.activo,
         })
         setEspecialidades(data.especialidad || [])
-        setTurnosSeleccionados(data.turnoIds || [])
+        // Los turnos ahora vienen desde la relación
+        if (data.turnos) {
+          setTurnosSeleccionados(data.turnos.map((t: any) => t.id))
+        }
       }
     } catch (error) {
       console.error('Error al cargar entrenador:', error)
@@ -276,31 +281,45 @@ export default function EditarEntrenadorPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Especialidades
+                    Contraseña
                   </label>
-                  <div className="space-y-2 border border-gray-300 rounded-lg p-4">
-                    {especialidadesDisponibles.map((esp) => (
-                      <div key={esp} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`esp-${esp}`}
-                          checked={especialidades.includes(esp)}
-                          onChange={() => handleEspecialidadChange(esp)}
-                          className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                        />
-                        <label
-                          htmlFor={`esp-${esp}`}
-                          className="ml-2 block text-sm text-gray-700 cursor-pointer"
-                        >
-                          {esp}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Selecciona una o varias especialidades del entrenador
-                  </p>
+                  <Input
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Dejar vacío para mantener contraseña actual"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Solo completa si deseas cambiar la contraseña</p>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Especialidades
+                </label>
+                <div className="space-y-2 border border-gray-300 rounded-lg p-4">
+                  {especialidadesDisponibles.map((esp) => (
+                    <div key={esp} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`esp-${esp}`}
+                        checked={especialidades.includes(esp)}
+                        onChange={() => handleEspecialidadChange(esp)}
+                        className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor={`esp-${esp}`}
+                        className="ml-2 block text-sm text-gray-700 cursor-pointer"
+                      >
+                        {esp}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  Selecciona una o varias especialidades del entrenador
+                </p>
               </div>
 
               <div>

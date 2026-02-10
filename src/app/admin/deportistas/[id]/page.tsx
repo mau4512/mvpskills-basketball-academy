@@ -23,6 +23,8 @@ interface DeportistaData {
   planSesiones: string
   turnoId: string
   activo: boolean
+  password?: string
+  confirmPassword?: string
 }
 
 interface Turno {
@@ -113,13 +115,34 @@ export default function EditarDeportistaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validar contraseñas si se están cambiando
+    if (formData.password || formData.confirmPassword) {
+      if (formData.password !== formData.confirmPassword) {
+        alert('Las contraseñas no coinciden')
+        return
+      }
+      if (formData.password && formData.password.length < 6) {
+        alert('La contraseña debe tener al menos 6 caracteres')
+        return
+      }
+    }
+    
     setIsSubmitting(true)
 
     try {
+      // Crear objeto sin los campos de confirmación
+      const { confirmPassword, ...dataToSend } = formData
+      
+      // Si no se ingresó contraseña, no enviarla
+      if (!dataToSend.password) {
+        delete dataToSend.password
+      }
+      
       const response = await fetch(`/api/deportistas/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(dataToSend)
       })
       
       if (!response.ok) {
@@ -245,6 +268,36 @@ export default function EditarDeportistaPage() {
                   value={formData.celular}
                   onChange={handleChange}
                   placeholder="Ej: +34 600 123 456"
+                />
+              </div>
+            </div>
+
+            {/* Cambiar Contraseña */}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Cambiar Contraseña</h2>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-yellow-800">
+                  Deja estos campos vacíos si no deseas cambiar la contraseña actual del deportista.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="Nueva Contraseña"
+                  name="password"
+                  type="password"
+                  value={formData.password || ''}
+                  onChange={handleChange}
+                  placeholder="Mínimo 6 caracteres"
+                  minLength={6}
+                />
+                <Input
+                  label="Confirmar Nueva Contraseña"
+                  name="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword || ''}
+                  onChange={handleChange}
+                  placeholder="Repite la contraseña"
+                  minLength={6}
                 />
               </div>
             </div>

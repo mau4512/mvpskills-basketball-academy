@@ -8,7 +8,17 @@ export async function GET(
 ) {
   try {
     const entrenador = await prisma.entrenador.findUnique({
-      where: { id: params.id }
+      where: { id: params.id },
+      include: {
+        turnos: {
+          select: {
+            id: true,
+            nombre: true,
+            tipo: true,
+            hora: true
+          }
+        }
+      }
     })
 
     if (!entrenador) {
@@ -18,14 +28,7 @@ export async function GET(
       )
     }
 
-    // Obtener turnos asociados
-    const turnos = await prisma.turno.findMany({
-      where: {
-        id: { in: entrenador.turnoIds }
-      }
-    })
-
-    return NextResponse.json({ ...entrenador, turnos })
+    return NextResponse.json(entrenador)
   } catch (error) {
     console.error('Error al obtener entrenador:', error)
     return NextResponse.json(
@@ -42,30 +45,58 @@ export async function PUT(
 ) {
   try {
     const body = await request.json()
-    const { nombre, apellidos, documentoIdentidad, email, celular, especialidad, turnoIds, activo } = body
+    const { nombre, apellidos, documentoIdentidad, email, password, celular, especialidad, turnoIds, activo } = body
+
+    // Construir el objeto de datos, solo incluir password si se proporciona
+    const updateData: any = {
+      nombre,
+      apellidos,
+      documentoIdentidad,
+      email,
+      celular: celular || null,
+      especialidad: especialidad || [],
+      activo: activo !== undefined ? activo : true,
+    }
+
+    // Solo actualizar contraseña si se proporciona una nueva
+    if (password && password.trim() !== '') {
+      updateData.password = password
+    }
 
     const entrenador = await prisma.entrenador.update({
       where: { id: params.id },
-      data: {
-        nombre,
-        apellidos,
-        documentoIdentidad,
-        email,
-        celular: celular || null,
-        especialidad: especialidad || [],
-        turnoIds: turnoIds || [],
-        activo: activo !== undefined ? activo : true,
+      data: updateData,
+      include: {
+        turnos: true
       }
     })
 
-    // Obtener turnos asociados
-    const turnos = await prisma.turno.findMany({
-      where: {
-        id: { in: entrenador.turnoIds }
+    // Actualizar la relación de turnos
+    if (turnoIds && Array.isArray(turnoIds)) {
+      // Primero, desasignar este entrenador de todos los turnos actuales
+      await prisma.turno.updateMany({
+        where: { entrenadorId: params.id },
+        data: { entrenadorId: null }
+      })
+
+      // Luego, asignar el entrenador a los nuevos turnos seleccionados
+      if (turnoIds.length > 0) {
+        await prisma.turno.updateMany({
+          where: { id: { in: turnoIds } },
+          data: { entrenadorId: params.id }
+        })
+      }
+    }
+
+    // Recargar entrenador con turnos actualizados
+    const entrenadorActualizado = await prisma.entrenador.findUnique({
+      where: { id: params.id },
+      include: {
+        turnos: true
       }
     })
 
-    return NextResponse.json({ ...entrenador, turnos })
+    return NextResponse.json(entrenadorActualizado)
   } catch (error: any) {
     console.error('Error al actualizar entrenador:', error)
     

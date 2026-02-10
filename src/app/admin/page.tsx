@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
 import Link from 'next/link'
-import { Users, Activity, TrendingUp, Calendar } from 'lucide-react'
+import { Users, Activity, TrendingUp, Calendar, Target } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 
 // Forzar rendering dinámico
@@ -126,7 +126,7 @@ export default async function AdminPage() {
           <h2 className="text-xl font-semibold text-gray-900">Acciones Rápidas</h2>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               href="/admin/deportistas/nuevo"
               className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition text-center"
@@ -152,6 +152,15 @@ export default async function AdminPage() {
               <Calendar className="h-8 w-8 text-gray-400 mx-auto mb-2" />
               <p className="font-medium text-gray-900">Gestionar Turnos</p>
               <p className="text-sm text-gray-600">Administrar horarios de entrenamiento</p>
+            </Link>
+
+            <Link
+              href="/admin/ejercicios-tiro"
+              className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition text-center"
+            >
+              <Target className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+              <p className="font-medium text-gray-900">Ejercicios de Tiro</p>
+              <p className="text-sm text-gray-600">Configurar ejercicios de tiro</p>
             </Link>
           </div>
         </CardContent>

@@ -5,25 +5,20 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   try {
     const entrenadores = await prisma.entrenador.findMany({
+      include: {
+        turnos: {
+          select: {
+            id: true,
+            nombre: true,
+            tipo: true,
+            hora: true
+          }
+        }
+      },
       orderBy: { createdAt: 'desc' }
     })
 
-    // Obtener turnos para cada entrenador
-    const entrenadoresConTurnos = await Promise.all(
-      entrenadores.map(async (entrenador) => {
-        const turnos = await prisma.turno.findMany({
-          where: {
-            id: { in: entrenador.turnoIds }
-          }
-        })
-        return {
-          ...entrenador,
-          turnos
-        }
-      })
-    )
-
-    return NextResponse.json(entrenadoresConTurnos)
+    return NextResponse.json(entrenadores)
   } catch (error) {
     console.error('Error al obtener entrenadores:', error)
     return NextResponse.json(
@@ -37,10 +32,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { nombre, apellidos, documentoIdentidad, email, celular, especialidad, turnoIds } = body
+    const { nombre, apellidos, documentoIdentidad, email, password, celular, especialidad } = body
 
     // Validar campos requeridos
-    if (!nombre || !apellidos || !documentoIdentidad || !email) {
+    if (!nombre || !apellidos || !documentoIdentidad || !email || !password) {
       return NextResponse.json(
         { error: 'Faltan campos requeridos' },
         { status: 400 }
@@ -54,21 +49,17 @@ export async function POST(request: NextRequest) {
         apellidos,
         documentoIdentidad,
         email,
+        password,
         celular: celular || null,
         especialidad: especialidad || [],
-        turnoIds: turnoIds || [],
         activo: true,
+      },
+      include: {
+        turnos: true
       }
     })
 
-    // Obtener turnos asociados
-    const turnos = await prisma.turno.findMany({
-      where: {
-        id: { in: entrenador.turnoIds }
-      }
-    })
-
-    return NextResponse.json({ ...entrenador, turnos }, { status: 201 })
+    return NextResponse.json(entrenador, { status: 201 })
   } catch (error: any) {
     console.error('Error al crear entrenador:', error)
     

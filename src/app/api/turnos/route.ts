@@ -15,6 +15,14 @@ export async function GET() {
             nombre: true,
             apellidos: true
           }
+        },
+        entrenador: {
+          select: {
+            id: true,
+            nombre: true,
+            apellidos: true,
+            especialidad: true
+          }
         }
       },
       orderBy: {
@@ -50,6 +58,7 @@ export async function POST(request: Request) {
         modalidad: body.modalidad,
         seccion: body.seccion,
         capacidadMaxima: capacidadMaxima,
+        entrenadorId: body.entrenadorId || null,
         activo: body.activo !== false
       }
     })

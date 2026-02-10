@@ -47,6 +47,8 @@ model Deportista {
   mediciones    Medicion[]
   ejercicios    Ejercicio[]
   asistencias   Asistencia[]
+  registrosTiro RegistroTiro[]
+  sesionesEntrenamiento SesionEntrenamiento[]
   turnoId       String?
   turno         Turno?        @relation(fields: [turnoId], references: [id], onDelete: SetNull)
   
@@ -62,6 +64,7 @@ model Turno {
   modalidad     String        // interdiario (12 sesiones), diario (20 sesiones)
   seccion       String        // preparacion_fisica, tecnica_individual, personalizado
   capacidadMaxima Int         @default(10) // 10 por defecto, 5 para personalizado
+  entrenadorId  String?       // ID del entrenador asignado
   activo        Boolean       @default(true)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -69,6 +72,9 @@ model Turno {
   // Relaciones
   deportistas   Deportista[]
   asistencias   Asistencia[]
+  entrenador    Entrenador?   @relation(fields: [entrenadorId], references: [id], onDelete: SetNull)
+  ejerciciosTiro EjercicioTiro[]
+  planes        PlanEntrenamiento[]
   
   @@map("turnos")
 }
@@ -80,12 +86,16 @@ model Entrenador {
   apellidos     String
   documentoIdentidad String   @unique
   email         String        @unique
+  password      String        @default("cambiar123") // Contraseña temporal por defecto
   celular       String?
   especialidad  String[]      // Array de especialidades
-  turnoIds      String[]      // Array de IDs de turnos
   activo        Boolean       @default(true)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  
+  // Relaciones
+  turnos        Turno[]
+  planes        PlanEntrenamiento[]
   
   @@map("entrenadores")
 }
@@ -145,6 +155,45 @@ model SesionEjercicio {
   createdAt     DateTime      @default(now())
   
   @@map("sesiones_ejercicios")
+}
+
+// Ejercicios de tiro configurados por el entrenador
+model EjercicioTiro {
+  id            String        @id @default(cuid())
+  turnoId       String
+  turno         Turno         @relation(fields: [turnoId], references: [id], onDelete: Cascade)
+  nombre        String        // Nombre del ejercicio
+  posiciones    Json          // Array de posiciones [{zona: "esquina_derecha", meta: 10}, ...]
+  metaTotal     Int           // Total de tiros exitosos requeridos
+  fechaInicio   DateTime      @default(now())
+  fechaFin      DateTime?
+  activo        Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relaciones
+  registros     RegistroTiro[]
+  
+  @@map("ejercicios_tiro")
+}
+
+// Registro de tiros del deportista
+model RegistroTiro {
+  id                String        @id @default(cuid())
+  ejercicioTiroId   String
+  ejercicioTiro     EjercicioTiro @relation(fields: [ejercicioTiroId], references: [id], onDelete: Cascade)
+  deportistaId      String
+  deportista        Deportista    @relation(fields: [deportistaId], references: [id], onDelete: Cascade)
+  posicion          String        // Zona desde donde tira
+  metaPosicion      Int           // Cuántos aciertos debe lograr en esta posición
+  intentos          Int           // Total de intentos para alcanzar la meta
+  aciertos          Int           // Total de aciertos
+  completado        Boolean       @default(false)
+  fecha             DateTime      @default(now())
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@map("registros_tiro")
 }
 
 // Mediciones de tiro
@@ -218,4 +267,41 @@ model Matricula {
   updatedAt        DateTime @updatedAt
   
   @@map("matriculas")
+}
+
+// Plan de Entrenamiento
+model PlanEntrenamiento {
+  id            String        @id @default(cuid())
+  titulo        String
+  fecha         DateTime
+  turnoId       String
+  turno         Turno         @relation(fields: [turnoId], references: [id], onDelete: Cascade)
+  entrenadorId  String
+  entrenador    Entrenador    @relation(fields: [entrenadorId], references: [id], onDelete: Cascade)
+  notas         String?       @db.Text
+  ejercicios    Json          // Array de ejercicios en formato JSON
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relación con sesiones ejecutadas
+  sesionesEjecutadas SesionEntrenamiento[]
+  
+  @@map("planes_entrenamiento")
+}
+
+// Sesión de Entrenamiento Ejecutada (deportistas que completaron un plan)
+model SesionEntrenamiento {
+  id                    String             @id @default(cuid())
+  deportistaId          String
+  deportista            Deportista         @relation(fields: [deportistaId], references: [id], onDelete: Cascade)
+  planEntrenamientoId   String
+  planEntrenamiento     PlanEntrenamiento  @relation(fields: [planEntrenamientoId], references: [id], onDelete: Cascade)
+  fecha                 DateTime           @default(now())
+  duracion              Int                // en minutos
+  resultados            Json               // Array con resultados de cada ejercicio
+  observaciones         String?            @db.Text
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  
+  @@map("sesiones_entrenamiento")
 }
