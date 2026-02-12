@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { hashPassword } from '@/lib/password'
 
 // GET - Obtener todos los deportistas
 export async function GET() {
@@ -24,6 +25,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
+    const password = body.password ? await hashPassword(body.password) : null
     
     const deportista = await prisma.deportista.create({
       data: {
@@ -31,7 +33,7 @@ export async function POST(request: Request) {
         apellidos: body.apellidos,
         documentoIdentidad: body.documentoIdentidad,
         email: body.email,
-        password: body.password || null,
+        password,
         celular: body.celular || null,
         fechaNacimiento: new Date(body.fechaNacimiento),
         altura: body.altura ? parseFloat(body.altura) : null,

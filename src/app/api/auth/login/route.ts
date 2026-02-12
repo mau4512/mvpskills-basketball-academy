@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { hashPassword, isBcryptHash, verifyPassword } from '@/lib/password'
 
 type Role = 'admin' | 'entrenador' | 'deportista'
 
@@ -8,13 +9,15 @@ const roleOrder: Role[] = ['admin', 'entrenador', 'deportista']
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
+    const login = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
     const password = typeof body.password === 'string' ? body.password : ''
     const preferredRole = body.preferredRole as Role | undefined
+    const primaryAdminEmail = (process.env.PRIMARY_ADMIN_EMAIL || '').trim().toLowerCase()
+    const primaryAdminPasswordHash = process.env.PRIMARY_ADMIN_PASSWORD_HASH || ''
 
-    if (!email || !password) {
+    if (!login || !password) {
       return NextResponse.json(
-        { error: 'Email y contraseña son requeridos' },
+        { error: 'Usuario/correo y contraseña son requeridos' },
         { status: 400 }
       )
     }
@@ -25,13 +28,39 @@ export async function POST(request: NextRequest) {
 
     for (const role of rolesToCheck) {
       if (role === 'admin') {
+        // Admin principal por variables de entorno (sin exponer credenciales en código)
+        if (
+          primaryAdminEmail &&
+          primaryAdminPasswordHash &&
+          login === primaryAdminEmail &&
+          await verifyPassword(password, primaryAdminPasswordHash)
+        ) {
+          return NextResponse.json({
+            success: true,
+            role: 'admin',
+            user: {
+              id: 'primary-admin',
+              nombre: 'Administrador Principal',
+              email: primaryAdminEmail,
+              rol: 'admin',
+            },
+          })
+        }
+
         const admin = await prisma.admin.findUnique({
-          where: { email },
+          where: { email: login },
         })
 
         if (!admin) continue
-        if (admin.password !== password) {
+        const adminPasswordOk = await verifyPassword(password, admin.password)
+        if (!adminPasswordOk) {
           return NextResponse.json({ error: 'Credenciales incorrectas' }, { status: 401 })
+        }
+        if (!isBcryptHash(admin.password)) {
+          await prisma.admin.update({
+            where: { id: admin.id },
+            data: { password: await hashPassword(password) },
+          })
         }
 
         const { password: _password, ...adminSinPassword } = admin
@@ -44,12 +73,19 @@ export async function POST(request: NextRequest) {
 
       if (role === 'entrenador') {
         const entrenador = await prisma.entrenador.findUnique({
-          where: { email },
+          where: { email: login },
         })
 
         if (!entrenador) continue
-        if (entrenador.password !== password) {
+        const entrenadorPasswordOk = await verifyPassword(password, entrenador.password)
+        if (!entrenadorPasswordOk) {
           return NextResponse.json({ error: 'Credenciales incorrectas' }, { status: 401 })
+        }
+        if (!isBcryptHash(entrenador.password)) {
+          await prisma.entrenador.update({
+            where: { id: entrenador.id },
+            data: { password: await hashPassword(password) },
+          })
         }
         if (!entrenador.activo) {
           return NextResponse.json(
@@ -67,13 +103,20 @@ export async function POST(request: NextRequest) {
       }
 
       const deportista = await prisma.deportista.findUnique({
-        where: { email },
+        where: { email: login },
         include: { turno: true },
       })
 
       if (!deportista) continue
-      if (!deportista.password || deportista.password !== password) {
+      const deportistaPasswordOk = await verifyPassword(password, deportista.password)
+      if (!deportistaPasswordOk) {
         return NextResponse.json({ error: 'Credenciales incorrectas' }, { status: 401 })
+      }
+      if (deportista.password && !isBcryptHash(deportista.password)) {
+        await prisma.deportista.update({
+          where: { id: deportista.id },
+          data: { password: await hashPassword(password) },
+        })
       }
       if (!deportista.activo) {
         return NextResponse.json(

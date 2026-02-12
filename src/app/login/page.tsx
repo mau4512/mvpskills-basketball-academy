@@ -111,17 +111,17 @@ export default function LoginPage() {
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   <Mail className="inline h-4 w-4 mr-2" />
-                  Correo electrónico
+                  Correo o usuario
                 </label>
                 <Input
                   id="email"
                   name="email"
-                  type="email"
+                  type="text"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="tu@email.com"
+                  placeholder="tu@email.com o usuario"
                   required
-                  autoComplete="email"
+                  autoComplete="username"
                 />
               </div>
 

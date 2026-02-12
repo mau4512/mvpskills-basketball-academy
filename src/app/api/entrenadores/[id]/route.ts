@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { hashPassword } from '@/lib/password'
 
 // GET - Obtener un entrenador específico
 export async function GET(
@@ -60,7 +61,7 @@ export async function PUT(
 
     // Solo actualizar contraseña si se proporciona una nueva
     if (password && password.trim() !== '') {
-      updateData.password = password
+      updateData.password = await hashPassword(password)
     }
 
     const entrenador = await prisma.entrenador.update({

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { hashPassword } from '@/lib/password'
 
 // GET - Obtener un deportista por ID
 export async function GET(
@@ -58,7 +59,7 @@ export async function PUT(
     
     // Actualizar contraseña solo si se proporciona
     if (body.password) {
-      updateData.password = body.password
+      updateData.password = await hashPassword(body.password)
     }
     
     // Actualizar otros campos si están presentes

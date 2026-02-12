@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { hashPassword, isBcryptHash, verifyPassword } from '@/lib/password'
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,12 +29,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verificar contraseña (en texto plano por ahora)
-    if (!deportista.password || deportista.password !== password) {
+    const passwordOk = await verifyPassword(password, deportista.password)
+    if (!passwordOk) {
       return NextResponse.json(
         { error: 'Credenciales incorrectas' },
         { status: 401 }
       )
+    }
+    if (deportista.password && !isBcryptHash(deportista.password)) {
+      await prisma.deportista.update({
+        where: { id: deportista.id },
+        data: { password: await hashPassword(password) },
+      })
     }
 
     // Verificar que esté activo

@@ -159,17 +159,17 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
+                  Correo o usuario
                 </label>
                 <input
                   id="email"
                   name="email"
-                  type="email"
+                  type="text"
                   required
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900"
-                  placeholder="tu@email.com"
+                  placeholder="tu@email.com o usuario"
                   autoComplete="username"
                 />
               </div>

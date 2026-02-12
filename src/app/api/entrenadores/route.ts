@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { hashPassword } from '@/lib/password'
 
 // GET - Obtener todos los entrenadores
 export async function GET() {
@@ -42,6 +43,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const hashedPassword = await hashPassword(password)
+
     // Crear el entrenador
     const entrenador = await prisma.entrenador.create({
       data: {
@@ -49,7 +52,7 @@ export async function POST(request: NextRequest) {
         apellidos,
         documentoIdentidad,
         email,
-        password,
+        password: hashedPassword,
         celular: celular || null,
         especialidad: especialidad || [],
         activo: true,

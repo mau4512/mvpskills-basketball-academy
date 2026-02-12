@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { hashPassword, verifyPassword } from '@/lib/password'
 
 // POST /api/deportistas/[id]/change-password
 export async function POST(
@@ -30,7 +31,8 @@ export async function POST(
     }
 
     // Verificar contraseña actual
-    if (deportista.password !== currentPassword) {
+    const currentPasswordOk = await verifyPassword(currentPassword, deportista.password)
+    if (!currentPasswordOk) {
       return NextResponse.json(
         { error: 'Contraseña actual incorrecta' },
         { status: 401 }
@@ -38,9 +40,10 @@ export async function POST(
     }
 
     // Actualizar contraseña
+    const hashedNewPassword = await hashPassword(newPassword)
     await prisma.deportista.update({
       where: { id: params.id },
-      data: { password: newPassword }
+      data: { password: hashedNewPassword }
     })
 
     return NextResponse.json({ message: 'Contraseña actualizada correctamente' })
