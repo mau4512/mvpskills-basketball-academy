@@ -15,6 +15,10 @@ interface Turno {
   seccion: string
   capacidadMaxima: number
   activo: boolean
+  entrenador?: {
+    nombre: string
+    apellidos: string
+  } | null
   _count: {
     deportistas: number
   }

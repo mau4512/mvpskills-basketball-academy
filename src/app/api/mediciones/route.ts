@@ -51,10 +51,10 @@ export async function POST(request: NextRequest) {
         fecha: body.fecha ? new Date(body.fecha) : new Date(),
         peso: body.peso ? parseFloat(body.peso) : null,
         altura: body.altura ? parseFloat(body.altura) : null,
-        envergadura: body.envergadura ? parseFloat(body.envergadura) : null,
         saltoVertical: body.saltoVertical ? parseFloat(body.saltoVertical) : null,
         velocidad: body.velocidad ? parseFloat(body.velocidad) : null,
-        resistencia: body.resistencia ? parseFloat(body.resistencia) : null,
+        fuerza: body.fuerza ? parseFloat(body.fuerza) : null,
+        tipoMedicion: body.tipoMedicion || 'Test Físico',
         notas: body.notas || null
       }
     })

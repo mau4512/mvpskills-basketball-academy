@@ -14,7 +14,7 @@ interface Stroke {
   points: { x: number; y: number }[]
   color: string
   lineWidth: number
-  tool: 'pen' | 'eraser'
+  tool: 'pen' | 'eraser' | 'shape'
 }
 
 type ShapeType = 'ball' | 'cone' | 'player-offense' | 'player-defense' | 'arrow' | 'dashed-arrow'

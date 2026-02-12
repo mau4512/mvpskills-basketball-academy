@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
@@ -9,12 +9,10 @@ import { ArrowLeft, Save, CheckCircle, XCircle } from 'lucide-react'
 
 export default function AsistenciasEntrenadorPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const turnoId = searchParams.get('turnoId')
   
   const [entrenador, setEntrenador] = useState<any>(null)
   const [turnos, setTurnos] = useState<any[]>([])
-  const [turnoSeleccionado, setTurnoSeleccionado] = useState<string>(turnoId || '')
+  const [turnoSeleccionado, setTurnoSeleccionado] = useState<string>('')
   const [deportistas, setDeportistas] = useState<any[]>([])
   const [asistencias, setAsistencias] = useState<{ [key: string]: boolean }>({})
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0])
@@ -22,6 +20,12 @@ export default function AsistenciasEntrenadorPage() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
+    const query = new URLSearchParams(window.location.search)
+    const turnoId = query.get('turnoId')
+    if (turnoId) {
+      setTurnoSeleccionado(turnoId)
+    }
+
     const entrenadorData = localStorage.getItem('entrenador')
     if (!entrenadorData) {
       router.push('/entrenador/login')

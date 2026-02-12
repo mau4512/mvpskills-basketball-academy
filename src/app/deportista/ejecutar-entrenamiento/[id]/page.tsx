@@ -291,7 +291,7 @@ export default function EjecutarEntrenamientoPage() {
                     <p className="text-sm text-gray-600 mt-1">{ejercicio.descripcion}</p>
                   </div>
                   <Button
-                    variant={resultado.completado ? "default" : "outline"}
+                    variant={resultado.completado ? "primary" : "outline"}
                     onClick={() => marcarEjercicioCompletado(ejercicio.id)}
                   >
                     <CheckCircle className="h-4 w-4 mr-2" />

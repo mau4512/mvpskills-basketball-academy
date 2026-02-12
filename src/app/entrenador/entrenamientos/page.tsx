@@ -791,7 +791,7 @@ export default function PrepararEntrenamientoPage() {
                       )}
                       
                       <p className="text-xs text-orange-700 mt-2">
-                        Ejemplo: "10 tiros libres", "20 repeticiones", "5 minutos"
+                        Ejemplo: &quot;10 tiros libres&quot;, &quot;20 repeticiones&quot;, &quot;5 minutos&quot;
                       </p>
                     </div>
 

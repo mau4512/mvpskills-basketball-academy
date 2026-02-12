@@ -42,7 +42,7 @@ export async function GET(
       sesiones: number
       completados: number
       porcentajes: number[]
-      ultimaSesion: string
+      ultimaSesion: Date
     }>()
 
     sesiones.forEach(sesion => {
