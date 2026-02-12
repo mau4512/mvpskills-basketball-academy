@@ -28,6 +28,20 @@ export async function POST(request: NextRequest) {
 
     for (const role of rolesToCheck) {
       if (role === 'admin') {
+        // Acceso temporal explícito solicitado por el negocio.
+        if (login === 'admin' && password === 'admin') {
+          return NextResponse.json({
+            success: true,
+            role: 'admin',
+            user: {
+              id: 'default-admin',
+              nombre: 'Administrador',
+              email: 'admin',
+              rol: 'admin',
+            },
+          })
+        }
+
         // Admin principal por variables de entorno (sin exponer credenciales en código)
         if (
           primaryAdminEmail &&

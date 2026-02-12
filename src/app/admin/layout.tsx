@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Users, Home, Clock, Calendar, UserCog, LogOut } from 'lucide-react'
+import { Users, Home, Clock, Calendar, UserCog, LogOut, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 export default function AdminLayout({
@@ -64,6 +64,13 @@ export default function AdminLayout({
                 >
                   <Calendar className="h-5 w-5 mr-2" />
                   Asistencias
+                </Link>
+                <Link
+                  href="/admin/perfil"
+                  className="flex items-center px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+                >
+                  <User className="h-5 w-5 mr-2" />
+                  Perfil
                 </Link>
               </div>
             </div>
