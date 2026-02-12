@@ -28,8 +28,8 @@ export default function HomePage() {
               <Link href="#matricula">
                 <Button variant="outline">Matricúlate</Button>
               </Link>
-              <Link href="/deportista/login">
-                <Button>Acceso Deportistas</Button>
+              <Link href="/login">
+                <Button>Iniciar Sesión</Button>
               </Link>
             </div>
           </div>
@@ -304,13 +304,8 @@ export default function HomePage() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/deportista/login" className="text-gray-400 hover:text-orange-400">
-                    Acceso Deportistas
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/entrenador/login" className="text-gray-400 hover:text-orange-400">
-                    Acceso Entrenadores
+                  <Link href="/login" className="text-gray-400 hover:text-orange-400">
+                    Iniciar Sesión
                   </Link>
                 </li>
               </ul>

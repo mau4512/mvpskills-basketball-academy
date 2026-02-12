@@ -15,7 +15,7 @@ type TipoUsuario = 'admin' | 'entrenador' | 'deportista'
 
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const router = useRouter()
-  const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>('admin')
+  const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>('deportista')
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -37,53 +37,47 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setError('')
 
     try {
-      if (tipoUsuario === 'admin') {
-        // Login de administrador (temporal con credenciales hardcodeadas)
-        if (formData.email === 'admin' && formData.password === 'admin') {
-          localStorage.setItem('isAdmin', 'true')
-          router.push('/admin')
-          onClose()
-        } else {
-          setError('Credenciales incorrectas')
-          setLoading(false)
-        }
-      } else if (tipoUsuario === 'entrenador') {
-        // Login de entrenador
-        const response = await fetch('/api/entrenadores/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        })
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          preferredRole: tipoUsuario,
+        }),
+      })
 
-        const data = await response.json()
+      const data = await response.json()
 
-        if (response.ok) {
-          localStorage.setItem('entrenador', JSON.stringify(data.entrenador))
-          router.push('/entrenador')
-          onClose()
-        } else {
-          setError(data.error || 'Credenciales incorrectas')
-          setLoading(false)
-        }
-      } else if (tipoUsuario === 'deportista') {
-        // Login de deportista
-        const response = await fetch('/api/deportistas/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        })
-
-        const data = await response.json()
-
-        if (response.ok) {
-          localStorage.setItem('deportista', JSON.stringify(data.deportista))
-          router.push('/deportista')
-          onClose()
-        } else {
-          setError(data.error || 'Credenciales incorrectas')
-          setLoading(false)
-        }
+      if (!response.ok) {
+        setError(data.error || 'Credenciales incorrectas')
+        setLoading(false)
+        return
       }
+
+      localStorage.removeItem('isAdmin')
+      localStorage.removeItem('admin')
+      localStorage.removeItem('entrenador')
+      localStorage.removeItem('deportista')
+
+      if (data.role === 'admin') {
+        localStorage.setItem('isAdmin', 'true')
+        localStorage.setItem('admin', JSON.stringify(data.user))
+        router.push('/admin')
+        onClose()
+        return
+      }
+
+      if (data.role === 'entrenador') {
+        localStorage.setItem('entrenador', JSON.stringify(data.user))
+        router.push('/entrenador')
+        onClose()
+        return
+      }
+
+      localStorage.setItem('deportista', JSON.stringify(data.user))
+      router.push('/deportista')
+      onClose()
     } catch (error) {
       console.error('Error:', error)
       setError('Error al iniciar sesión. Por favor, intenta de nuevo.')
@@ -165,17 +159,17 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  {tipoUsuario === 'admin' ? 'Usuario' : 'Email'}
+                  Email
                 </label>
                 <input
                   id="email"
                   name="email"
-                  type={tipoUsuario === 'admin' ? 'text' : 'email'}
+                  type="email"
                   required
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-gray-900"
-                  placeholder={tipoUsuario === 'admin' ? 'Ingresa tu usuario' : 'tu@email.com'}
+                  placeholder="tu@email.com"
                   autoComplete="username"
                 />
               </div>
@@ -213,7 +207,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               </Button>
 
               <p className="text-sm text-gray-500 text-center mt-4">
-                Acceso exclusivo para administradores
+                Acceso para administradores, entrenadores y deportistas
               </p>
             </form>
           </CardContent>

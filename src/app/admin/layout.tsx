@@ -14,6 +14,7 @@ export default function AdminLayout({
 
   const cerrarSesion = () => {
     localStorage.removeItem('isAdmin')
+    localStorage.removeItem('admin')
     router.push('/')
   }
 
